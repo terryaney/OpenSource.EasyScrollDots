@@ -49,10 +49,17 @@ let dotFixedNavId = '';
 let dotFixedNavUp = false;
 let dotOffset = 0;
 let dotNavHeight = 0;
+let dotHandleIndiScroll = null;
+
+function isHidden(el) {
+    const style = window.getComputedStyle(el);
+    return style.display === 'none';
+}
 
 // scroll indicator controller
 function easyScrollDots(dotfixedOptions) {
     let scrollIndi = document.querySelectorAll('[data-scroll-indicator-title]');
+    const scrollIndiElems = Array.prototype.slice.call(scrollIndi).filter(function (el) { return !isHidden(el); });
     dotfixedOptions.fixedNav === true ? dotFixedNavPresent = true : dotFixedNavPresent;
     dotfixedOptions.fixedNavId === '' ? dotFixedNavId = false : dotFixedNavId = dotfixedOptions.fixedNavId;
     dotfixedOptions.fixedNavUpward === true ? dotFixedNavUp = true : dotFixedNavUp;
@@ -69,12 +76,21 @@ function easyScrollDots(dotfixedOptions) {
         }
     }
 
-    if (scrollIndi.length) {
+    const existingController = document.querySelector('.scroll-indicator-controller');
+    if (existingController) {
+        existingController.remove();
+    }
+
+    if (dotHandleIndiScroll) {
+        window.removeEventListener('scroll', dotHandleIndiScroll);
+        dotHandleIndiScroll = null;
+    }
+
+    if (scrollIndiElems.length) {
         const scrollIndiTemplate = '<div class="scroll-indicator-controller"><span></span></div>';
         document.querySelector('body').lastElementChild.insertAdjacentHTML('afterend', scrollIndiTemplate);
         const scrollIndiController = document.querySelector('.scroll-indicator-controller');
         if ((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) { scrollIndiController.classList.add('indi-mobile'); }
-        const scrollIndiElems = Array.prototype.slice.call(scrollIndi);
 
         scrollIndiElems.forEach(function (e, i) {
             const scrollIndiTitle = e.getAttribute('data-scroll-indicator-title');
@@ -132,7 +148,8 @@ function easyScrollDots(dotfixedOptions) {
 
         }, 300);
 
-        window.addEventListener('scroll', handleIndiScroll);
+        dotHandleIndiScroll = handleIndiScroll;
+        window.addEventListener('scroll', dotHandleIndiScroll);
     }
 };
 
